@@ -41,6 +41,9 @@ let lastGesture = "Ready";
 let lastAction = "Start the camera";
 let lastConfidence = 0;
 let activeFilter = 0;
+let illusionTrails = [];
+let illusionParticles = [];
+let lastIllusionPoint = null;
 
 const filters = [
   "none",
@@ -48,6 +51,8 @@ const filters = [
   "contrast(1.14) brightness(1.05)",
   "sepia(0.28) saturate(1.18)"
 ];
+
+const illusionPoints = [0, 4, 8, 12, 16, 20];
 
 function formatGesture(name) {
   return name
@@ -162,6 +167,124 @@ function classifyMotion(landmarks) {
   };
 }
 
+function landmarkToCanvas(point, width, height) {
+  return {
+    x: point.x * width,
+    y: point.y * height
+  };
+}
+
+function addMotionIllusions(landmarks, width, height) {
+  const anchors = illusionPoints.map((index) => landmarkToCanvas(landmarks[index], width, height));
+  const center = anchors.reduce(
+    (total, point) => ({
+      x: total.x + point.x / anchors.length,
+      y: total.y + point.y / anchors.length
+    }),
+    { x: 0, y: 0 }
+  );
+
+  const speed = lastIllusionPoint
+    ? Math.hypot(center.x - lastIllusionPoint.x, center.y - lastIllusionPoint.y)
+    : 0;
+
+  illusionTrails.push({
+    points: anchors,
+    speed,
+    age: 0,
+    life: 18
+  });
+
+  if (illusionTrails.length > 26) {
+    illusionTrails.shift();
+  }
+
+  if (speed > 16) {
+    for (const point of anchors) {
+      illusionParticles.push({
+        x: point.x,
+        y: point.y,
+        vx: (Math.random() - 0.5) * speed * 0.16,
+        vy: (Math.random() - 0.5) * speed * 0.16,
+        radius: 2 + Math.random() * 3,
+        age: 0,
+        life: 18 + Math.random() * 14,
+        hue: Math.random() > 0.5 ? 138 : 190
+      });
+    }
+  }
+
+  if (illusionParticles.length > 190) {
+    illusionParticles.splice(0, illusionParticles.length - 190);
+  }
+
+  lastIllusionPoint = center;
+}
+
+function drawMotionIllusions(width, height) {
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+
+  for (const trail of illusionTrails) {
+    const opacity = Math.max(0, 1 - trail.age / trail.life);
+    const intensity = Math.min(trail.speed / 36, 1);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.shadowBlur = 18 + intensity * 18;
+    ctx.shadowColor = `rgba(54, 240, 111, ${0.32 * opacity})`;
+    ctx.strokeStyle = `rgba(54, 240, 111, ${0.12 + 0.34 * opacity})`;
+    ctx.lineWidth = 2 + intensity * 5;
+
+    ctx.beginPath();
+    ctx.moveTo(trail.points[0].x, trail.points[0].y);
+    for (let index = 1; index < trail.points.length; index += 1) {
+      const previous = trail.points[index - 1];
+      const current = trail.points[index];
+      const midX = (previous.x + current.x) / 2;
+      const midY = (previous.y + current.y) / 2;
+      ctx.quadraticCurveTo(previous.x, previous.y, midX, midY);
+    }
+    ctx.stroke();
+
+    for (const point of trail.points) {
+      const glow = 10 + intensity * 20;
+      const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, glow);
+      gradient.addColorStop(0, `rgba(255, 47, 85, ${0.44 * opacity})`);
+      gradient.addColorStop(0.45, `rgba(54, 240, 111, ${0.2 * opacity})`);
+      gradient.addColorStop(1, "rgba(54, 240, 111, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, glow, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    trail.age += 1;
+  }
+
+  for (const particle of illusionParticles) {
+    const opacity = Math.max(0, 1 - particle.age / particle.life);
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+    particle.vx *= 0.92;
+    particle.vy *= 0.92;
+    particle.age += 1;
+
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = `hsla(${particle.hue}, 100%, 62%, ${opacity})`;
+    ctx.fillStyle = `hsla(${particle.hue}, 100%, 62%, ${opacity})`;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, particle.radius * opacity, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  illusionTrails = illusionTrails.filter((trail) => trail.age < trail.life);
+  illusionParticles = illusionParticles.filter(
+    (particle) => particle.age < particle.life && particle.x >= -20 && particle.x <= width + 20 && particle.y >= -20 && particle.y <= height + 20
+  );
+
+  ctx.restore();
+}
+
 function triggerAction(prediction) {
   if (cooldown > 0) {
     cooldown -= 1;
@@ -259,10 +382,17 @@ function onResults(results) {
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     motionHistory = [];
+    lastIllusionPoint = null;
+    drawMotionIllusions(width, height);
     updateUi("No hand detected", 0, "Waiting for hand");
     ctx.restore();
     return;
   }
+
+  for (const landmarks of results.multiHandLandmarks) {
+    addMotionIllusions(landmarks, width, height);
+  }
+  drawMotionIllusions(width, height);
 
   for (const landmarks of results.multiHandLandmarks) {
     window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
@@ -341,6 +471,9 @@ function stopCamera() {
   isRunning = false;
   isRecording = false;
   motionHistory = [];
+  illusionTrails = [];
+  illusionParticles = [];
+  lastIllusionPoint = null;
   startButton.disabled = false;
   recordPanel.classList.remove("is-recording");
   recordingState.textContent = "Not recording";
