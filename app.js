@@ -53,6 +53,9 @@ const filters = [
 ];
 
 const illusionPoints = [0, 4, 8, 12, 16, 20];
+const CAMERA_WIDTH = 1920;
+const CAMERA_HEIGHT = 1080;
+const MAX_RENDER_SCALE = 2;
 
 function formatGesture(name) {
   return name
@@ -63,8 +66,9 @@ function formatGesture(name) {
 
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.max(1, Math.round(rect.width));
-  canvas.height = Math.max(1, Math.round(rect.height));
+  const scale = Math.min(window.devicePixelRatio || 1, MAX_RENDER_SCALE);
+  canvas.width = Math.max(1, Math.round(rect.width * scale));
+  canvas.height = Math.max(1, Math.round(rect.height * scale));
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
@@ -192,30 +196,30 @@ function addMotionIllusions(landmarks, width, height) {
     points: anchors,
     speed,
     age: 0,
-    life: 18
+    life: 34
   });
 
-  if (illusionTrails.length > 26) {
+  if (illusionTrails.length > 46) {
     illusionTrails.shift();
   }
 
-  if (speed > 16) {
+  if (speed > 3) {
     for (const point of anchors) {
       illusionParticles.push({
         x: point.x,
         y: point.y,
-        vx: (Math.random() - 0.5) * speed * 0.16,
-        vy: (Math.random() - 0.5) * speed * 0.16,
-        radius: 2 + Math.random() * 3,
+        vx: (Math.random() - 0.5) * Math.max(speed, 8) * 0.22,
+        vy: (Math.random() - 0.5) * Math.max(speed, 8) * 0.22,
+        radius: 3 + Math.random() * 5,
         age: 0,
-        life: 18 + Math.random() * 14,
+        life: 24 + Math.random() * 22,
         hue: Math.random() > 0.5 ? 138 : 190
       });
     }
   }
 
-  if (illusionParticles.length > 190) {
-    illusionParticles.splice(0, illusionParticles.length - 190);
+  if (illusionParticles.length > 280) {
+    illusionParticles.splice(0, illusionParticles.length - 280);
   }
 
   lastIllusionPoint = center;
@@ -227,13 +231,13 @@ function drawMotionIllusions(width, height) {
 
   for (const trail of illusionTrails) {
     const opacity = Math.max(0, 1 - trail.age / trail.life);
-    const intensity = Math.min(trail.speed / 36, 1);
+    const intensity = Math.min(Math.max(trail.speed, 8) / 38, 1);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.shadowBlur = 18 + intensity * 18;
-    ctx.shadowColor = `rgba(54, 240, 111, ${0.32 * opacity})`;
-    ctx.strokeStyle = `rgba(54, 240, 111, ${0.12 + 0.34 * opacity})`;
-    ctx.lineWidth = 2 + intensity * 5;
+    ctx.shadowBlur = 26 + intensity * 28;
+    ctx.shadowColor = `rgba(54, 240, 111, ${0.72 * opacity})`;
+    ctx.strokeStyle = `rgba(54, 240, 111, ${0.24 + 0.58 * opacity})`;
+    ctx.lineWidth = 5 + intensity * 9;
 
     ctx.beginPath();
     ctx.moveTo(trail.points[0].x, trail.points[0].y);
@@ -246,11 +250,17 @@ function drawMotionIllusions(width, height) {
     }
     ctx.stroke();
 
+    ctx.shadowBlur = 30 + intensity * 22;
+    ctx.shadowColor = `rgba(110, 231, 255, ${0.48 * opacity})`;
+    ctx.strokeStyle = `rgba(110, 231, 255, ${0.1 + 0.28 * opacity})`;
+    ctx.lineWidth = 14 + intensity * 18;
+    ctx.stroke();
+
     for (const point of trail.points) {
-      const glow = 10 + intensity * 20;
+      const glow = 22 + intensity * 34;
       const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, glow);
-      gradient.addColorStop(0, `rgba(255, 47, 85, ${0.44 * opacity})`);
-      gradient.addColorStop(0.45, `rgba(54, 240, 111, ${0.2 * opacity})`);
+      gradient.addColorStop(0, `rgba(255, 47, 85, ${0.86 * opacity})`);
+      gradient.addColorStop(0.38, `rgba(54, 240, 111, ${0.38 * opacity})`);
       gradient.addColorStop(1, "rgba(54, 240, 111, 0)");
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -269,7 +279,7 @@ function drawMotionIllusions(width, height) {
     particle.vy *= 0.92;
     particle.age += 1;
 
-    ctx.shadowBlur = 14;
+    ctx.shadowBlur = 22;
     ctx.shadowColor = `hsla(${particle.hue}, 100%, 62%, ${opacity})`;
     ctx.fillStyle = `hsla(${particle.hue}, 100%, 62%, ${opacity})`;
     ctx.beginPath();
@@ -397,12 +407,12 @@ function onResults(results) {
   for (const landmarks of results.multiHandLandmarks) {
     window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
       color: "#25e85f",
-      lineWidth: 3
+      lineWidth: Math.max(4, canvas.width / 260)
     });
     window.drawLandmarks(ctx, landmarks, {
       color: "#ff2f55",
       lineWidth: 2,
-      radius: 4
+      radius: Math.max(5, canvas.width / 230)
     });
   }
 
@@ -445,8 +455,8 @@ async function startCamera() {
   hands.onResults(onResults);
 
   camera = new window.Camera(video, {
-    width: 1280,
-    height: 720,
+    width: CAMERA_WIDTH,
+    height: CAMERA_HEIGHT,
     onFrame: async () => {
       await hands.send({ image: video });
     }
