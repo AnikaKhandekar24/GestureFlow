@@ -8,11 +8,27 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="code-backdrop" aria-hidden="true">
+      <pre>import cv2
+import mediapipe as mp
+
+cap = cv2.VideoCapture(0)
+hands = mp.solutions.hands.Hands()
+
+while True:
+    success, frame = cap.read()
+    results = hands.process(frame)
+    draw_landmarks(frame, results)
+    classify_gesture(results)
+
+    if key == "q":
+        break</pre>
+    </div>
     <main class="app-shell">
       <section class="workspace" aria-label="GestureFlow webcam app">
         <header class="hero-bar">
           <div>
-            <p class="eyebrow">Real-time hand control</p>
+            <p class="eyebrow">OpenCV + MediaPipe Hands</p>
             <h1>GestureFlow</h1>
           </div>
           <div class="status-pill" id="cameraStatus">Camera off</div>

@@ -194,13 +194,13 @@ function drawEmptyState() {
   const height = canvas.height;
   ctx.clearRect(0, 0, width, height);
   const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#101827");
-  gradient.addColorStop(0.58, "#172033");
-  gradient.addColorStop(1, "#223047");
+  gradient.addColorStop(0, "#050711");
+  gradient.addColorStop(0.58, "#0f172a");
+  gradient.addColorStop(1, "#111827");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  ctx.strokeStyle = "rgba(199, 237, 255, 0.12)";
+  ctx.strokeStyle = "rgba(110, 231, 255, 0.1)";
   ctx.lineWidth = 1;
   for (let x = 0; x < width; x += 42) {
     ctx.beginPath();
@@ -220,20 +220,22 @@ function drawEmptyState() {
   const x = (width - cardWidth) / 2;
   const y = (height - cardHeight) / 2;
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
-  roundRect(ctx, x, y, cardWidth, cardHeight, 18);
+  ctx.fillStyle = "rgba(8, 13, 24, 0.88)";
+  roundRect(ctx, x, y, cardWidth, cardHeight, 10);
   ctx.fill();
+  ctx.strokeStyle = "rgba(110, 231, 255, 0.28)";
+  ctx.stroke();
 
-  ctx.fillStyle = "#788397";
-  ctx.font = "800 12px system-ui";
+  ctx.fillStyle = "#36f06f";
+  ctx.font = "800 12px Consolas, monospace";
   ctx.fillText("WEBCAM PREVIEW", x + 28, y + 38);
 
-  ctx.fillStyle = "#202b3d";
-  ctx.font = "850 28px system-ui";
+  ctx.fillStyle = "#f8fbff";
+  ctx.font = "850 28px Inter, system-ui";
   ctx.fillText("Start camera to detect gestures", x + 28, y + 78);
 
-  ctx.fillStyle = "#5f6b7e";
-  ctx.font = "650 16px system-ui";
+  ctx.fillStyle = "#8ea0b8";
+  ctx.font = "650 16px Inter, system-ui";
   ctx.fillText("Allow camera access, then show your hand in the frame.", x + 28, y + 112);
   ctx.fillText("Landmarks and predictions will appear here live.", x + 28, y + 138);
 }
@@ -264,11 +266,11 @@ function onResults(results) {
 
   for (const landmarks of results.multiHandLandmarks) {
     window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
-      color: "#8ecae6",
-      lineWidth: 4
+      color: "#25e85f",
+      lineWidth: 3
     });
     window.drawLandmarks(ctx, landmarks, {
-      color: "#ffb4c2",
+      color: "#ff2f55",
       lineWidth: 2,
       radius: 4
     });
