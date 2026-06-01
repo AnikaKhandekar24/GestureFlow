@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+models/*.joblib
+screenshots/*.png
+data/**/*.csv
+data/**/*.mp4
+data/**/*.avi
+
+.DS_Store
+Thumbs.db

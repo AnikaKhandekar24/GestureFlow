@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GestureFlow</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="GestureFlow webcam app">
+        <header class="hero-bar">
+          <div>
+            <p class="eyebrow">Real-time hand control</p>
+            <h1>GestureFlow</h1>
+          </div>
+          <div class="status-pill" id="cameraStatus">Camera off</div>
+        </header>
+
+        <section class="stage">
+          <video id="webcam" playsinline muted></video>
+          <canvas id="output"></canvas>
+          <div class="scan-frame" aria-hidden="true"></div>
+        </section>
+
+        <section class="control-deck" aria-label="GestureFlow controls">
+          <div class="metric-card primary">
+            <span class="panel-label">Gesture</span>
+            <strong id="gestureName">Ready</strong>
+            <span id="confidence">Confidence: 0.00</span>
+          </div>
+
+          <div class="metric-card">
+            <span class="panel-label">Action</span>
+            <strong id="actionName">Start the camera</strong>
+            <span id="screenName">Screen: Dashboard</span>
+          </div>
+
+          <div class="record-card" id="recordPanel">
+            <span id="recordingState">Not recording</span>
+            <strong id="sampleCount">0 samples</strong>
+          </div>
+
+          <div class="controls">
+            <button id="startButton" type="button">Start</button>
+            <button id="recordButton" type="button">Record</button>
+            <button id="saveButton" type="button">CSV</button>
+            <button id="stopButton" type="button">Stop</button>
+          </div>
+        </section>
+      </section>
+
+      <aside class="side-rail" aria-label="Gesture action guide">
+        <div class="side-header">
+          <h2>Live Actions</h2>
+          <div class="gesture-picker" aria-label="Sample label">
+            <label for="gestureLabel">Sample</label>
+            <select id="gestureLabel">
+              <option value="open_palm">Open palm</option>
+              <option value="fist">Fist</option>
+              <option value="peace">Peace</option>
+              <option value="swipe_left">Swipe left</option>
+              <option value="swipe_right">Swipe right</option>
+              <option value="swipe_up">Swipe up</option>
+              <option value="swipe_down">Swipe down</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-list">
+          <div><span>Swipe left</span><strong>Previous slide</strong></div>
+          <div><span>Swipe right</span><strong>Next slide</strong></div>
+          <div><span>Swipe up</span><strong>Scroll up</strong></div>
+          <div><span>Swipe down</span><strong>Scroll down</strong></div>
+          <div><span>Open palm</span><strong>Pause</strong></div>
+          <div><span>Fist</span><strong>Select</strong></div>
+          <div><span>Peace</span><strong>Screenshot</strong></div>
+        </div>
+
+        <div class="shortcuts">
+          <h2>Keys</h2>
+          <p><kbd>R</kbd> record</p>
+          <p><kbd>S</kbd> download CSV</p>
+          <p><kbd>Q</kbd> stop camera</p>
+        </div>
+      </aside>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
