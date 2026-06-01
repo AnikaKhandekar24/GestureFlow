@@ -58,10 +58,9 @@ function formatGesture(name) {
 
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.round(rect.width * ratio));
-  canvas.height = Math.max(1, Math.round(rect.height * ratio));
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  canvas.width = Math.max(1, Math.round(rect.width));
+  canvas.height = Math.max(1, Math.round(rect.height));
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function setStatus(text) {
@@ -191,34 +190,35 @@ function triggerAction(prediction) {
 }
 
 function drawEmptyState() {
-  const rect = canvas.getBoundingClientRect();
-  ctx.clearRect(0, 0, rect.width, rect.height);
-  const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, "#101827");
   gradient.addColorStop(0.58, "#172033");
   gradient.addColorStop(1, "#223047");
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, rect.width, rect.height);
+  ctx.fillRect(0, 0, width, height);
 
   ctx.strokeStyle = "rgba(199, 237, 255, 0.12)";
   ctx.lineWidth = 1;
-  for (let x = 0; x < rect.width; x += 42) {
+  for (let x = 0; x < width; x += 42) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
-    ctx.lineTo(x, rect.height);
+    ctx.lineTo(x, height);
     ctx.stroke();
   }
-  for (let y = 0; y < rect.height; y += 42) {
+  for (let y = 0; y < height; y += 42) {
     ctx.beginPath();
     ctx.moveTo(0, y);
-    ctx.lineTo(rect.width, y);
+    ctx.lineTo(width, y);
     ctx.stroke();
   }
 
-  const cardWidth = Math.min(520, rect.width - 48);
+  const cardWidth = Math.min(520, width - 48);
   const cardHeight = 168;
-  const x = (rect.width - cardWidth) / 2;
-  const y = (rect.height - cardHeight) / 2;
+  const x = (width - cardWidth) / 2;
+  const y = (height - cardHeight) / 2;
 
   ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   roundRect(ctx, x, y, cardWidth, cardHeight, 18);
@@ -249,10 +249,11 @@ function roundRect(context, x, y, width, height, radius) {
 }
 
 function onResults(results) {
-  const rect = canvas.getBoundingClientRect();
+  const width = canvas.width;
+  const height = canvas.height;
   ctx.save();
-  ctx.clearRect(0, 0, rect.width, rect.height);
-  ctx.drawImage(results.image, 0, 0, rect.width, rect.height);
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(results.image, 0, 0, width, height);
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     motionHistory = [];
